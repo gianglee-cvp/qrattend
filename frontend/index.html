@@ -9,26 +9,14 @@
 <body>
   <div class="container mt-4">
     <h1 class="mb-4">Hệ thống điểm danh bằng mã QR</h1>
-    <div class="row">
-      <div class="col-md-6">
-        <h3>Tạo mã QR cho buổi học</h3>
-        <input type="text" id="sessionId" class="form-control mb-2" placeholder="Nhập mã buổi học">
-        <button class="btn btn-primary mb-2" onclick="generateQR()">Tạo mã QR</button>
-        <div id="qrcode"></div>
-      </div>
-      <div class="col-md-6">
-        <h3>Quét mã QR để điểm danh</h3>
-        <div id="reader" style="width:300px;"></div>
-        <input type="text" id="studentId" class="form-control mt-2" placeholder="Nhập mã sinh viên">
-        <button class="btn btn-success mt-2" onclick="submitAttendance()">Điểm danh</button>
-        <div id="result" class="mt-2"></div>
-      </div>
+    <div class="mb-3">
+      <label for="roleSelect" class="form-label">Chọn vai trò:</label>
+      <select id="roleSelect" class="form-select" onchange="renderRoleUI()">
+        <option value="teacher">Giáo viên</option>
+        <option value="student">Sinh viên</option>
+      </select>
     </div>
-    <hr>
-    <h3>Thống kê điểm danh</h3>
-    <input type="text" id="statSessionId" class="form-control mb-2" placeholder="Nhập mã buổi học">
-    <button class="btn btn-info mb-2" onclick="getStatistics()">Xem thống kê</button>
-    <div id="statistics"></div>
+    <div id="roleUI"></div>
   </div>
   <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
   <script src="https://unpkg.com/html5-qrcode"></script>

@@ -1,3 +1,34 @@
+function renderRoleUI() {
+  const role = document.getElementById('roleSelect').value;
+  const roleUI = document.getElementById('roleUI');
+  if (role === 'teacher') {
+    roleUI.innerHTML = `
+      <div class="mb-4">
+        <h3>Tạo mã QR cho buổi học</h3>
+        <input type="text" id="sessionId" class="form-control mb-2" placeholder="Nhập mã buổi học">
+        <button class="btn btn-primary mb-2" onclick="generateQR()">Tạo mã QR</button>
+        <div id="qrcode"></div>
+      </div>
+      <hr>
+      <h3>Thống kê điểm danh</h3>
+      <input type="text" id="statSessionId" class="form-control mb-2" placeholder="Nhập mã buổi học">
+      <button class="btn btn-info mb-2" onclick="getStatistics()">Xem thống kê</button>
+      <div id="statistics"></div>
+    `;
+  } else {
+    roleUI.innerHTML = `
+      <div class="mb-4">
+        <h3>Quét mã QR để điểm danh</h3>
+        <div id="reader" style="width:300px;"></div>
+        <input type="text" id="studentId" class="form-control mt-2" placeholder="Nhập mã sinh viên">
+        <button class="btn btn-success mt-2" onclick="submitAttendance()">Điểm danh</button>
+        <div id="result" class="mt-2"></div>
+      </div>
+    `;
+    startQrScanner();
+  }
+}
+
 // Tạo mã QR
 function generateQR() {
   const sessionId = document.getElementById('sessionId').value;
@@ -14,15 +45,19 @@ function generateQR() {
 
 // Quét mã QR
 let scannedSessionId = '';
-const html5Qr = new Html5Qrcode("reader");
-html5Qr.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
-  (decodedText) => {
-    scannedSessionId = decodedText;
-    document.getElementById('result').innerText = 'Mã buổi học: ' + scannedSessionId;
-    html5Qr.stop();
-  },
-  (error) => {}
-);
+function startQrScanner() {
+  if (document.getElementById('reader')) {
+    const html5Qr = new Html5Qrcode("reader");
+    html5Qr.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 },
+      (decodedText) => {
+        scannedSessionId = decodedText;
+        document.getElementById('result').innerText = 'Mã buổi học: ' + scannedSessionId;
+        html5Qr.stop();
+      },
+      (error) => {}
+    );
+  }
+}
 
 // Điểm danh
 function submitAttendance() {
@@ -51,3 +86,6 @@ function getStatistics() {
       document.getElementById('statistics').innerText = 'Số sinh viên đã điểm danh: ' + data.count;
     });
 }
+
+// Khởi tạo UI mặc định
+window.onload = renderRoleUI;
