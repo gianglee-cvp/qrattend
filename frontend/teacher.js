@@ -58,6 +58,11 @@ function onClassChange() {
   if (currentClassId) {
     layout.style.display = 'grid';
     
+    // Xóa cache của lớp cũ
+    classSessions = [];
+    classStudents = [];
+    sessionDetailsCache = {};
+    
     // Reset session screen
     resetSessionUI();
 
@@ -77,8 +82,11 @@ function resetSessionUI() {
   document.getElementById('session-label').value = '';
 }
 
+let currentTeacherTab = 'session-create';
+
 // Chuyển đổi tab linh hoạt
 function switchTab(tabName) {
+  currentTeacherTab = tabName;
   // Cập nhật Active Sidebar Button
   const sidebarBtns = document.querySelectorAll('.sidebar-menu .sidebar-btn');
   sidebarBtns.forEach(btn => btn.classList.remove('active'));
@@ -93,9 +101,16 @@ function switchTab(tabName) {
   const activeSec = document.getElementById(`tab-${tabName}`);
   if (activeSec) activeSec.classList.add('active');
 
-  // Fetch dữ liệu dựa theo tab
-  if (tabName === 'sessions-history') fetchSessionsHistory();
-  if (tabName === 'students-list') fetchStudentsList();
+  // Fetch dữ liệu dựa theo tab (CHỈ KHI CHƯA CÓ DATA)
+  if (tabName === 'sessions-history' && classSessions.length === 0) fetchSessionsHistory();
+  if (tabName === 'students-list' && classStudents.length === 0) fetchStudentsList();
+}
+
+// Nút làm mới thủ công
+function refreshTeacherTab() {
+  showToast('Đang làm mới dữ liệu...', 'success');
+  if (currentTeacherTab === 'sessions-history') fetchSessionsHistory();
+  if (currentTeacherTab === 'students-list') fetchStudentsList();
 }
 
 
