@@ -80,5 +80,9 @@
   - **Tự động đồng bộ dữ liệu cục bộ lên MongoDB Atlas (Data Seeding):**
     - Thiết lập hàm `seedMongoDb()` tự động chạy khi kết nối thành công với MongoDB Atlas lần đầu.
     - Hàm sẽ tự động đồng bộ (seeding) toàn bộ dữ liệu mẫu (Sinh viên, Giảng viên, Học phần, Lớp học phần) từ file cục bộ `local_db.json` lên đám mây MongoDB Atlas nếu các Collection trong MongoDB trống, giúp hệ thống sẵn sàng hoạt động ngay lập tức với dữ liệu thực mà không cần nhập thủ công.
+  - **Tối ưu hóa kết nối MongoDB trên Vercel Serverless (Khắc phục Cold Start & Treo Fallback):**
+    - Sửa đổi Middleware ở backend để tự động phát hiện trạng thái đang kết nối (`readyState === 2`). Middleware sử dụng cơ chế Promise chờ tối đa 4 giây để Mongoose hoàn tất kết nối trước khi cho phép request tiếp tục. Điều này giải quyết triệt để vấn đề đăng nhập chậm / lỗi đăng nhập ở lần đầu truy cập (Cold Start) và ngăn chặn việc các request song song bị đẩy về database cục bộ khi DB Cloud thực tế vẫn hoạt động.
+    - Loại bỏ cơ chế `Promise.race` 2 giây quá ngắn ở API đăng nhập để tránh việc ngắt kết nối hợp lệ trong thời gian khởi động Serverless.
+    - Thêm endpoint gỡ lỗi đặc biệt `/api/debug-db` hiển thị chi tiết trạng thái readyState của Mongoose và thông báo lỗi kết nối MongoDB Atlas mới nhất để phục vụ công tác giám sát trên môi trường production.
 
 

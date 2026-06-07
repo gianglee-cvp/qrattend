@@ -50,5 +50,6 @@
 | `/teacher`        | Serve `teacher.html` — Dashboard Giáo viên           |
 | `/student`        | Serve `student.html` — Trang điểm danh Sinh viên     |
 | `/student-portal` | Serve `student_portal.html` — Portal Sinh viên       |
+| `/api/debug-db`   | Endpoint gỡ lỗi trạng thái cơ sở dữ liệu (Mongoose readyState) |
 | `/api/*`          | Các API endpoint (attendance, statistics, auth)       |
 
