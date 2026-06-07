@@ -1,3 +1,4 @@
+let sessionDetailsCache = {};
 // Kiểm tra quyền truy cập của Giảng viên khi tải trang
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
@@ -170,7 +171,7 @@ async function createSession() {
     document.getElementById('qr-url-text').innerText = `Đường dẫn điểm danh: ${attendanceUrl}`;
 
   } catch (err) {
-    alert(err.message || 'Lỗi tạo phiên điểm danh!');
+    showToast(err.message || 'Lỗi tạo phiên điểm danh!', 'error');
   }
 }
 
@@ -239,47 +240,61 @@ async function fetchSessionCount(sessId) {
 }
 
 // Xem chi tiết phiên đã điểm danh (Bảng danh sách SV đã chụp ảnh)
-async function viewSessionDetails(sessId) {
+async function viewSessionDetails(sessId, forceRefresh = false) {
   document.getElementById('detail-session-id').innerText = sessId;
   const tbody = document.getElementById('attendance-detail-table-body');
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Đang tải dữ liệu...</td></tr>`;
-
   openModal('modal-session-detail');
+
+  // Load from cache if not forcing refresh
+  if (sessionDetailsCache[sessId] && !forceRefresh) {
+    renderSessionDetails(sessionDetailsCache[sessId]);
+    if (!forceRefresh) showToast('Tải từ bộ nhớ đệm (Nhấn Làm mới nếu cần)', 'warning');
+    return;
+  }
+
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
 
   try {
     const res = await fetch(`${API_URL}/statistics/${sessId}`);
     const data = await res.json();
-
-    tbody.innerHTML = '';
-    if (data.list.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Chưa có sinh viên nào điểm danh phiên này.</td></tr>`;
-      return;
-    }
-
-    data.list.forEach(item => {
-      const attTime = new Date(item.timestamp).toLocaleTimeString('vi-VN');
-      const imgHtml = item.image 
-        ? `<img src="${item.image}" class="attendance-selfie" onclick="viewLargeImage('${item.image}')" title="Click để xem ảnh lớn">`
-        : `<span style="color: var(--text-secondary); font-size:12px;">Không có</span>`;
-      
-      const typeHtml = item.isManual
-        ? `<span class="badge badge-danger" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;"><i class="fa-solid fa-user-pen"></i> Thủ công</span>`
-        : `<span class="badge badge-success"><i class="fa-solid fa-qrcode"></i> Quét QR</span>`;
-
-      tbody.innerHTML += `
-        <tr>
-          <td>${imgHtml}</td>
-          <td><strong>${item.studentId}</strong></td>
-          <td>${item.name}</td>
-          <td>${attTime}</td>
-          <td>${typeHtml}</td>
-        </tr>
-      `;
-    });
-
+    
+    sessionDetailsCache[sessId] = data; // save to cache
+    renderSessionDetails(data);
+    if (forceRefresh) showToast('Đã làm mới dữ liệu phiên!', 'success');
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger)">Lỗi tải dữ liệu chi tiết!</td></tr>`;
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger)">Lỗi tải dữ liệu chi tiết!</td></tr>';
   }
+}
+
+function renderSessionDetails(data) {
+  const tbody = document.getElementById('attendance-detail-table-body');
+  tbody.innerHTML = '';
+  
+  if (!data || !data.list || data.list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Chưa có sinh viên nào điểm danh phiên này.</td></tr>';
+    return;
+  }
+
+  data.list.forEach(item => {
+    const attTime = new Date(item.timestamp).toLocaleTimeString('vi-VN');
+    const imgHtml = item.image 
+      ? `<img src="${item.image}" class="attendance-selfie" onclick="viewLargeImage('${item.image}')" title="Click để xem ảnh lớn">`
+      : `<span style="color: var(--text-secondary); font-size:12px;">Không có</span>`;
+    
+    const typeHtml = item.isManual
+      ? `<span class="badge badge-danger" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;"><i class="fa-solid fa-user-pen"></i> Thủ công</span>`
+      : `<span class="badge badge-success"><i class="fa-solid fa-qrcode"></i> Quét QR</span>`;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${imgHtml}</td>
+        <td><strong>${item.studentId}</strong></td>
+        <td>${item.name}</td>
+        <td>${attTime}</td>
+        <td>${typeHtml}</td>
+      </tr>
+    `;
+  });
 }
 
 // Xem ảnh selfie cỡ lớn
@@ -340,7 +355,7 @@ async function openManualAttendanceModal(studentId) {
   classSessions = await res.json();
 
   if (classSessions.length === 0) {
-    alert('Lớp học phần này chưa từng tạo phiên điểm danh nào! Vui lòng tạo phiên trước.');
+    showToast('Lớp học phần này chưa từng tạo phiên điểm danh nào! Vui lòng tạo phiên trước.', 'success');
     return;
   }
 
@@ -360,7 +375,7 @@ async function submitManualAttendance(e) {
   const sessionId = document.getElementById('manual-session-select').value;
 
   if (!sessionId) {
-    alert('Vui lòng chọn phiên để điểm danh!');
+    showToast('Vui lòng chọn phiên để điểm danh!', 'warning');
     return;
   }
 
@@ -377,13 +392,32 @@ async function submitManualAttendance(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Điểm danh thủ công thành công!');
+    showToast('Điểm danh thủ công thành công!', 'success');
     closeModal('modal-select-session-manual');
     
     // Load lại lịch sử phiên hoặc danh sách nếu cần
     fetchSessionsHistory();
 
   } catch (err) {
-    alert(err.message || 'Lỗi điểm danh thủ công!');
+    showToast(err.message || 'Lỗi điểm danh thủ công!', 'error');
   }
+}
+
+// Toast Notification System
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  let icon = 'fa-check-circle';
+  if (type === 'error') icon = 'fa-circle-xmark';
+  if (type === 'warning') icon = 'fa-triangle-exclamation';
+  
+  toast.innerHTML = `<i class="fa-solid ${icon}" style="color: var(--${type})"></i> <span>${message}</span>`;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
