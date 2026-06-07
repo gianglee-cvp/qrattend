@@ -24,6 +24,7 @@ mongoose.set('bufferCommands', false);
 const MONGO_URI = "mongodb+srv://truonggiangcvp_db_user:4GaD9RYSCJZQo3VP@cluster0.mrbnlwa.mongodb.net/qr_attendance?retryWrites=true&w=majority&appName=Cluster0";
 
 let isMongoConnected = false;
+let lastMongoError = null;
 
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
@@ -32,11 +33,13 @@ mongoose.connect(MONGO_URI, {
 }).then(async () => {
   console.log('✅ Connected to Cloud MongoDB Atlas!');
   isMongoConnected = true;
+  lastMongoError = null;
   await seedMongoDb();
 }).catch(err => {
   console.log('❌ Cloud MongoDB Connection Error:', err.message);
   console.log('⚠️ Tự động chuyển sang chế độ dự phòng: Sử dụng cơ sở dữ liệu tệp cục bộ (local_db.json)');
   isMongoConnected = false;
+  lastMongoError = err.message;
 });
 
 // ================= MONGOOSE MODELS =================
@@ -189,11 +192,29 @@ app.use(async (req, res, next) => {
           serverSelectionTimeoutMS: 5000
         });
         isMongoConnected = true;
+        lastMongoError = null;
       } catch (e) {
         isMongoConnected = false;
+        lastMongoError = e.message;
       }
+    } else if (mongoose.connection.readyState === 2) {
+      await new Promise((resolve) => {
+        if (mongoose.connection.readyState !== 2) return resolve();
+        const onConnected = () => { cleanup(); resolve(); };
+        const onError = () => { cleanup(); resolve(); };
+        const cleanup = () => {
+          mongoose.connection.removeListener('connected', onConnected);
+          mongoose.connection.removeListener('error', onError);
+        };
+        mongoose.connection.once('connected', onConnected);
+        mongoose.connection.once('error', onError);
+        setTimeout(() => { cleanup(); resolve(); }, 4000);
+      });
+      isMongoConnected = (mongoose.connection.readyState === 1);
     } else if (mongoose.connection.readyState === 1) {
       isMongoConnected = true;
+    } else {
+      isMongoConnected = false;
     }
   }
   next();
@@ -238,6 +259,15 @@ function getLocalIpAddress() {
 
 app.get('/api/server-info', (req, res) => {
   res.json({ ip: getLocalIpAddress(), port: 3000 });
+});
+
+app.get('/api/debug-db', (req, res) => {
+  res.json({
+    readyState: mongoose.connection.readyState,
+    readyStateText: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoose.connection.readyState] || 'unknown',
+    isMongoConnected,
+    lastMongoError
+  });
 });
 
 // ================= AUTH ROUTES =================
