@@ -160,14 +160,14 @@ async function openClassDetailModal(classId) {
 // 1. Quản lý Sinh viên
 async function fetchStudents() {
   try {
+    const tbody = document.getElementById('student-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Đang tải dữ liệu...</td></tr>';
+
     const res = await fetch(`${API_URL}/admin/students`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     allStudents = await res.json();
-
-    const tbody = document.getElementById('student-table-body');
-    tbody.innerHTML = '';
 
     if (allStudents.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Chưa có sinh viên nào.</td></tr>`;
@@ -202,14 +202,14 @@ async function fetchStudents() {
 // 2. Quản lý Giảng viên
 async function fetchTeachers() {
   try {
+    const tbody = document.getElementById('teacher-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Đang tải dữ liệu...</td></tr>';
+
     const res = await fetch(`${API_URL}/admin/teachers`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     allTeachers = await res.json();
-
-    const tbody = document.getElementById('teacher-table-body');
-    tbody.innerHTML = '';
 
     if (allTeachers.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Chưa có giảng viên nào.</td></tr>`;
@@ -239,14 +239,14 @@ async function fetchTeachers() {
 // 3. Quản lý Học phần
 async function fetchSubjects() {
   try {
+    const tbody = document.getElementById('subject-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Đang tải dữ liệu...</td></tr>';
+
     const res = await fetch(`${API_URL}/admin/subjects`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     allSubjects = await res.json();
-
-    const tbody = document.getElementById('subject-table-body');
-    tbody.innerHTML = '';
 
     if (allSubjects.length === 0) {
       tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">Chưa có học phần nào.</td></tr>`;
@@ -279,14 +279,14 @@ async function fetchSubjects() {
 // 4. Quản lý Lớp học phần
 async function fetchClasses() {
   try {
+    const tbody = document.getElementById('class-table-body');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 30px; color: var(--text-secondary);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Đang tải dữ liệu...</td></tr>';
+
     const res = await fetch(`${API_URL}/admin/classes`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (!res.ok) throw new Error();
     allClasses = await res.json();
-
-    const tbody = document.getElementById('class-table-body');
-    tbody.innerHTML = '';
 
     if (allClasses.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Chưa có lớp học phần nào.</td></tr>`;
@@ -341,12 +341,12 @@ async function addStudent(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Thêm sinh viên thành công!');
+    showToast('Thêm sinh viên thành công!', 'success');
     closeModal('modal-add-student');
     document.getElementById('form-add-student').reset();
     fetchStudents();
   } catch (err) {
-    alert(err.message || 'Lỗi thêm sinh viên!');
+    showToast(err.message || 'Lỗi thêm sinh viên!', 'error');
   }
 }
 
@@ -380,11 +380,11 @@ async function editStudent(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Cập nhật thông tin sinh viên thành công!');
+    showToast('Cập nhật thông tin sinh viên thành công!', 'success');
     closeModal('modal-edit-student');
     fetchStudents();
   } catch (err) {
-    alert(err.message || 'Lỗi cập nhật sinh viên!');
+    showToast(err.message || 'Lỗi cập nhật sinh viên!', 'error');
   }
 }
 
@@ -401,10 +401,10 @@ async function deleteStudent(id) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Xóa sinh viên thành công!');
+    showToast('Xóa sinh viên thành công!', 'success');
     fetchStudents();
   } catch (err) {
-    alert(err.message || 'Lỗi xóa sinh viên!');
+    showToast(err.message || 'Lỗi xóa sinh viên!', 'error');
   }
 }
 
@@ -429,12 +429,12 @@ async function addTeacher(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Thêm giảng viên thành công!');
+    showToast('Thêm giảng viên thành công!', 'success');
     closeModal('modal-add-teacher');
     document.getElementById('form-add-teacher').reset();
     fetchTeachers();
   } catch (err) {
-    alert(err.message || 'Lỗi thêm giảng viên!');
+    showToast(err.message || 'Lỗi thêm giảng viên!', 'error');
   }
 }
 
@@ -451,10 +451,10 @@ async function deleteTeacher(id) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Xóa giảng viên thành công!');
+    showToast('Xóa giảng viên thành công!', 'success');
     fetchTeachers();
   } catch (err) {
-    alert(err.message || 'Lỗi xóa giảng viên!');
+    showToast(err.message || 'Lỗi xóa giảng viên!', 'error');
   }
 }
 
@@ -477,12 +477,12 @@ async function addSubject(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Thêm học phần thành công!');
+    showToast('Thêm học phần thành công!', 'success');
     closeModal('modal-add-subject');
     document.getElementById('form-add-subject').reset();
     fetchSubjects();
   } catch (err) {
-    alert(err.message || 'Lỗi thêm học phần!');
+    showToast(err.message || 'Lỗi thêm học phần!', 'error');
   }
 }
 
@@ -512,12 +512,12 @@ async function editSubject(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Cập nhật học phần thành công!');
+    showToast('Cập nhật học phần thành công!', 'success');
     closeModal('modal-edit-subject');
     fetchSubjects();
     fetchClasses(); // Tải lại lớp học phần vì tên môn học có thể đã thay đổi
   } catch (err) {
-    alert(err.message || 'Lỗi cập nhật học phần!');
+    showToast(err.message || 'Lỗi cập nhật học phần!', 'error');
   }
 }
 
@@ -534,10 +534,10 @@ async function deleteSubject(code) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Xóa học phần thành công!');
+    showToast('Xóa học phần thành công!', 'success');
     fetchSubjects();
   } catch (err) {
-    alert(err.message || 'Lỗi xóa học phần!');
+    showToast(err.message || 'Lỗi xóa học phần!', 'error');
   }
 }
 
@@ -561,12 +561,12 @@ async function addClass(e) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Tạo lớp học phần thành công!');
+    showToast('Tạo lớp học phần thành công!', 'success');
     closeModal('modal-add-class');
     document.getElementById('form-add-class').reset();
     fetchClasses();
   } catch (err) {
-    alert(err.message || 'Lỗi tạo lớp!');
+    showToast(err.message || 'Lỗi tạo lớp!', 'error');
   }
 }
 
@@ -583,10 +583,10 @@ async function deleteClass(id) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Xóa lớp học phần thành công!');
+    showToast('Xóa lớp học phần thành công!', 'success');
     fetchClasses();
   } catch (err) {
-    alert(err.message || 'Lỗi xóa lớp!');
+    showToast(err.message || 'Lỗi xóa lớp!', 'error');
   }
 }
 
@@ -595,7 +595,7 @@ async function addStudentToClassFromDetail() {
   const studentSelect = document.getElementById('class-detail-add-student-select');
   const studentId = studentSelect.value;
   if (!studentId) {
-    alert('Vui lòng chọn một sinh viên!');
+    showToast('Vui lòng chọn một sinh viên!', 'success');
     return;
   }
 
@@ -612,11 +612,11 @@ async function addStudentToClassFromDetail() {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Thêm sinh viên vào lớp thành công!');
+    showToast('Thêm sinh viên vào lớp thành công!', 'success');
     openClassDetailModal(activeClassIdForDetail);
     fetchClasses();
   } catch (err) {
-    alert(err.message || 'Lỗi thêm sinh viên vào lớp!');
+    showToast(err.message || 'Lỗi thêm sinh viên vào lớp!', 'error');
   }
 }
 
@@ -633,10 +633,29 @@ async function removeStudentFromClass(studentId) {
     const data = await res.json();
     if (!res.ok) throw new Error(data.message);
 
-    alert('Đã xóa sinh viên khỏi lớp!');
+    showToast('Đã xóa sinh viên khỏi lớp!', 'success');
     openClassDetailModal(activeClassIdForDetail);
     fetchClasses();
   } catch (err) {
-    alert(err.message || 'Lỗi xóa sinh viên khỏi lớp!');
+    showToast(err.message || 'Lỗi xóa sinh viên khỏi lớp!', 'error');
   }
+}
+
+// Toast Notification System
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  let icon = 'fa-check-circle';
+  if (type === 'error') icon = 'fa-circle-xmark';
+  if (type === 'warning') icon = 'fa-triangle-exclamation';
+  
+  toast.innerHTML = `<i class="fa-solid ${icon}" style="color: var(--${type})"></i> <span>${message}</span>`;
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
 }
