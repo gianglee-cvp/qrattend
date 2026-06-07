@@ -1,0 +1,4 @@
+Backend running on port 3000
+👨‍🏫 Giáo viên: http://localhost:3000/teacher
+👨‍🎓 Sinh viên: http://localhost:3000/student
+✅ Connected to Cloud MongoDB Atlas!

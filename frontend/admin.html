@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Admin - QRAttend</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Header Navbar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="nav-brand-logo"><i class="fa-solid fa-gears"></i></div>
+      <span>QRAttend Admin</span>
+    </div>
+    <div class="nav-user">
+      <span class="nav-username"><i class="fa-solid fa-user-shield"></i> Chào, <strong id="admin-name">Quản trị viên</strong></span>
+      <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+    </div>
+  </header>
+
+  <div class="container" style="max-width: 1200px;">
+    <!-- Dashboard Grid Layout -->
+    <div class="dashboard-grid">
+      <!-- Left Sidebar Menu -->
+      <aside class="sidebar-menu">
+        <button class="sidebar-btn active" onclick="switchTab('students')">
+          <i class="fa-solid fa-graduation-cap"></i>
+          <span>Sinh Viên</span>
+        </button>
+        <button class="sidebar-btn" onclick="switchTab('teachers')">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span>Giảng Viên</span>
+        </button>
+        <button class="sidebar-btn" onclick="switchTab('subjects')">
+          <i class="fa-solid fa-book"></i>
+          <span>Học Phần</span>
+        </button>
+        <button class="sidebar-btn" onclick="switchTab('classes')">
+          <i class="fa-solid fa-school"></i>
+          <span>Lớp Học Phần</span>
+        </button>
+      </aside>
+
+      <!-- Right Panel Content -->
+      <main class="premium-card">
+        
+        <!-- Tab 1: Sinh Viên -->
+        <section id="tab-students" class="panel-section active">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fa-solid fa-graduation-cap"></i> Quản lý Sinh Viên</h2>
+            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="openModal('modal-add-student')">
+              <i class="fa-solid fa-plus"></i> Thêm Sinh Viên
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>MSSV</th>
+                  <th>Họ và Tên</th>
+                  <th>Email</th>
+                  <th>Lớp Sinh Hoạt</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="student-table-body">
+                <!-- Chèn động bằng JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 2: Giảng Viên -->
+        <section id="tab-teachers" class="panel-section">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fa-solid fa-chalkboard-user"></i> Quản lý Giảng Viên</h2>
+            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="openModal('modal-add-teacher')">
+              <i class="fa-solid fa-plus"></i> Thêm Giảng Viên
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã GV</th>
+                  <th>Họ và Tên</th>
+                  <th>Tên Đăng Nhập</th>
+                  <th>Mật Khẩu</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="teacher-table-body">
+                <!-- Chèn động bằng JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 3: Học Phần -->
+        <section id="tab-subjects" class="panel-section">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fa-solid fa-book"></i> Quản lý Học Phần</h2>
+            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="openModal('modal-add-subject')">
+              <i class="fa-solid fa-plus"></i> Thêm Học Phần
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã Học Phần</th>
+                  <th>Tên Học Phần</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="subject-table-body">
+                <!-- Chèn động bằng JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 4: Lớp Học Phần -->
+        <section id="tab-classes" class="panel-section">
+          <div class="panel-header">
+            <h2 class="panel-title"><i class="fa-solid fa-school"></i> Quản lý Lớp Học Phần</h2>
+            <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="openModal('modal-add-class')">
+              <i class="fa-solid fa-plus"></i> Tạo Lớp Mới
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã Lớp Học Phần</th>
+                  <th>Học Phần</th>
+                  <th>Mã Giảng Viên</th>
+                  <th>Số lượng SV</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="class-table-body">
+                <!-- Chèn động bằng JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= POPUP MODALS ================= -->
+  
+  <!-- Modal 1: Thêm Sinh Viên -->
+  <div id="modal-add-student" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm Sinh Viên Mới</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-student')">&times;</button>
+      </div>
+      <form id="form-add-student" onsubmit="addStudent(event)">
+        <div class="form-group">
+          <label class="form-label">Mã Số Sinh Viên (MSSV)</label>
+          <input type="text" id="add-student-id" class="form-input form-input-noicon" placeholder="Ví dụ: 20235317" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Họ và Tên</label>
+          <input type="text" id="add-student-name" class="form-input form-input-noicon" placeholder="Ví dụ: Lê Trường Giang" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="add-student-email" class="form-input form-input-noicon" placeholder="Ví dụ: giang@gmail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lớp Sinh Hoạt</label>
+          <input type="text" id="add-student-homeclass" class="form-input form-input-noicon" placeholder="Ví dụ: CNTT-01">
+        </div>
+        <button type="submit" class="btn-primary">Lưu Sinh Viên</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Thêm Giảng Viên -->
+  <div id="modal-add-teacher" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm Giảng Viên Mới</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-teacher')">&times;</button>
+      </div>
+      <form id="form-add-teacher" onsubmit="addTeacher(event)">
+        <div class="form-group">
+          <label class="form-label">Mã Giảng Viên (Teacher ID)</label>
+          <input type="text" id="add-teacher-id" class="form-input form-input-noicon" placeholder="Ví dụ: GV01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Họ và Tên</label>
+          <input type="text" id="add-teacher-name" class="form-input form-input-noicon" placeholder="Ví dụ: Nguyễn Văn Thầy" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tên Đăng Nhập</label>
+          <input type="text" id="add-teacher-username" class="form-input form-input-noicon" placeholder="Ví dụ: teacher1" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mật Khẩu</label>
+          <input type="password" id="add-teacher-password" class="form-input form-input-noicon" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn-primary">Lưu Giảng Viên</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Thêm Học Phần -->
+  <div id="modal-add-subject" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Thêm Học Phần Mới</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-subject')">&times;</button>
+      </div>
+      <form id="form-add-subject" onsubmit="addSubject(event)">
+        <div class="form-group">
+          <label class="form-label">Mã Học Phần</label>
+          <input type="text" id="add-subject-code" class="form-input form-input-noicon" placeholder="Ví dụ: CS301" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tên Học Phần</label>
+          <input type="text" id="add-subject-name" class="form-input form-input-noicon" placeholder="Ví dụ: Lập trình Web" required>
+        </div>
+        <button type="submit" class="btn-primary">Lưu Học Phần</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Tạo Lớp Học Phần -->
+  <div id="modal-add-class" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Tạo Lớp Học Phần Mới</h3>
+        <button class="modal-close" onclick="closeModal('modal-add-class')">&times;</button>
+      </div>
+      <form id="form-add-class" onsubmit="addClass(event)">
+        <div class="form-group">
+          <label class="form-label">Mã Lớp Học Phần (Class ID)</label>
+          <input type="text" id="add-class-id" class="form-input form-input-noicon" placeholder="Ví dụ: CS301_L01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Học Phần</label>
+          <select id="add-class-subject" class="form-select" required>
+            <!-- Lấy tự động qua API -->
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Mã Giảng Viên (Teacher ID)</label>
+          <input type="text" id="add-class-teacher" class="form-input form-input-noicon" placeholder="Ví dụ: GV01" required>
+        </div>
+        <button type="submit" class="btn-primary">Tạo Lớp</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Thêm Sinh Viên Vào Lớp -->
+  <div id="modal-assign-student" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Gán Sinh Viên Vào Lớp</h3>
+        <button class="modal-close" onclick="closeModal('modal-assign-student')">&times;</button>
+      </div>
+      <form id="form-assign-student" onsubmit="assignStudent(event)">
+        <input type="hidden" id="assign-class-id">
+        <div class="form-group">
+          <label class="form-label">Lớp Học Phần</label>
+          <input type="text" id="assign-class-display" class="form-input form-input-noicon" disabled style="background: rgba(255,255,255,0.02)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sinh Viên</label>
+          <select id="assign-student-id" class="form-select" required>
+            <!-- Lấy tự động từ danh sách SV -->
+          </select>
+        </div>
+        <button type="submit" class="btn-primary">Thêm Vào Lớp</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 6: Sửa Thông Tin Sinh Viên -->
+  <div id="modal-edit-student" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Sửa Thông Tin Sinh Viên</h3>
+        <button class="modal-close" onclick="closeModal('modal-edit-student')">&times;</button>
+      </div>
+      <form id="form-edit-student" onsubmit="editStudent(event)">
+        <div class="form-group">
+          <label class="form-label">Mã Số Sinh Viên (MSSV)</label>
+          <input type="text" id="edit-student-id" class="form-input form-input-noicon" disabled style="background: rgba(255,255,255,0.02)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Họ và Tên</label>
+          <input type="text" id="edit-student-name" class="form-input form-input-noicon" placeholder="Ví dụ: Lê Trường Giang" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input type="email" id="edit-student-email" class="form-input form-input-noicon" placeholder="Ví dụ: giang@gmail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lớp Sinh Hoạt</label>
+          <input type="text" id="edit-student-homeclass" class="form-input form-input-noicon" placeholder="Ví dụ: CNTT-01">
+        </div>
+        <button type="submit" class="btn-primary">Cập Nhật</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 7: Chi Tiết Lớp Học Phần & Quản Lý Sinh Viên Trong Lớp -->
+  <div id="modal-class-detail" class="modal-overlay">
+    <div class="modal-content" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="class-detail-title">Danh Sách Sinh Viên Lớp: </h3>
+        <button class="modal-close" onclick="closeModal('modal-class-detail')">&times;</button>
+      </div>
+      <div style="margin-bottom: 20px; display: flex; gap: 15px; align-items: flex-end;">
+        <div style="flex-grow: 1;">
+          <label class="form-label">Thêm Sinh Viên mới vào lớp</label>
+          <select id="class-detail-add-student-select" class="form-select">
+            <!-- Sẽ được điền động các sinh viên chưa ở trong lớp này -->
+          </select>
+        </div>
+        <button class="btn-primary" style="width: auto; padding: 11px 20px; border-radius: 12px; height: 44px; margin-bottom: 3px;" onclick="addStudentToClassFromDetail()">
+          <i class="fa-solid fa-user-plus"></i> Thêm
+        </button>
+      </div>
+      <div class="table-wrapper" style="max-height: 300px; overflow-y: auto;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>MSSV</th>
+              <th>Họ và Tên</th>
+              <th>Lớp Sinh Hoạt</th>
+              <th>Hành Động</th>
+            </tr>
+          </thead>
+          <tbody id="class-detail-students-tbody">
+            <!-- Chèn động bằng JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 8: Sửa Học Phần -->
+  <div id="modal-edit-subject" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Sửa Thông Tin Học Phần</h3>
+        <button class="modal-close" onclick="closeModal('modal-edit-subject')">&times;</button>
+      </div>
+      <form id="form-edit-subject" onsubmit="editSubject(event)">
+        <div class="form-group">
+          <label class="form-label">Mã Học Phần</label>
+          <input type="text" id="edit-subject-code" class="form-input form-input-noicon" disabled style="background: rgba(255,255,255,0.02)">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tên Học Phần</label>
+          <input type="text" id="edit-subject-name" class="form-input form-input-noicon" placeholder="Ví dụ: Lập trình Web" required>
+        </div>
+        <button type="submit" class="btn-primary">Cập Nhật</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chọn Cổng Đăng Nhập - QRAttend</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+      width: 100%;
+    }
+    .portal-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 40px 30px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 4px;
+      transition: opacity 0.3s ease;
+      opacity: 0.6;
+    }
+    .portal-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255,255,255,0.15);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+    .portal-card:hover::before { opacity: 1; }
+    .portal-card:hover .portal-icon { transform: scale(1.1); }
+
+    /* Admin */
+    .portal-card.admin::before { background: linear-gradient(90deg, #f43f5e, #f59e0b); }
+    .portal-card.admin .portal-icon { background: linear-gradient(135deg, #f43f5e, #f59e0b); box-shadow: 0 8px 24px rgba(244, 63, 94, 0.2); }
+    .portal-card.admin:hover { border-color: rgba(244, 63, 94, 0.3); }
+
+    /* Teacher */
+    .portal-card.teacher::before { background: linear-gradient(90deg, #6366f1, #a855f7); }
+    .portal-card.teacher .portal-icon { background: linear-gradient(135deg, #6366f1, #a855f7); box-shadow: 0 8px 24px rgba(99, 102, 241, 0.2); }
+    .portal-card.teacher:hover { border-color: rgba(99, 102, 241, 0.3); }
+
+    /* Student */
+    .portal-card.student::before { background: linear-gradient(90deg, #10b981, #3b82f6); }
+    .portal-card.student .portal-icon { background: linear-gradient(135deg, #10b981, #3b82f6); box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2); }
+    .portal-card.student:hover { border-color: rgba(16, 185, 129, 0.3); }
+
+    .portal-icon {
+      width: 72px; height: 72px;
+      border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px; color: white;
+      margin: 0 auto 20px auto;
+      transition: transform 0.3s ease;
+      position: relative;
+    }
+    .portal-icon::after {
+      content: '';
+      position: absolute; inset: -4px;
+      background: inherit;
+      border-radius: 24px; z-index: -1;
+      opacity: 0.3; filter: blur(10px);
+    }
+    .portal-title {
+      font-size: 20px; font-weight: 800;
+      color: var(--text-primary); margin-bottom: 8px;
+    }
+    .portal-desc {
+      font-size: 13.5px; font-weight: 500;
+      color: var(--text-secondary); line-height: 1.5;
+    }
+    .portal-arrow {
+      margin-top: 20px;
+      font-size: 14px; font-weight: 700;
+      color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      transition: color 0.2s ease;
+    }
+    .portal-card:hover .portal-arrow { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+  <div class="container" style="max-width: 900px; margin-top: 50px;">
+    <!-- Brand Header -->
+    <div class="header-brand">
+      <div class="logo-icon">
+        <i class="fa-solid fa-qrcode"></i>
+      </div>
+      <h1>QRAttend</h1>
+      <p>Hệ thống Điểm danh QR Nâng cấp — Chọn cổng đăng nhập phù hợp</p>
+    </div>
+
+    <!-- Portal Selection Grid -->
+    <div class="portal-grid">
+      <!-- Admin Card -->
+      <div class="portal-card admin" onclick="window.location.href='/login/admin'">
+        <div class="portal-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <div class="portal-title">Quản Trị Viên</div>
+        <div class="portal-desc">Quản lý toàn bộ hệ thống: sinh viên, giảng viên, học phần và lớp học phần.</div>
+        <div class="portal-arrow">
+          Truy cập <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      </div>
+
+      <!-- Teacher Card -->
+      <div class="portal-card teacher" onclick="window.location.href='/login/teacher'">
+        <div class="portal-icon">
+          <i class="fa-solid fa-chalkboard-user"></i>
+        </div>
+        <div class="portal-title">Giảng Viên</div>
+        <div class="portal-desc">Tạo phiên điểm danh, sinh mã QR, quản lý lớp và xem lịch sử điểm danh.</div>
+        <div class="portal-arrow">
+          Truy cập <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      </div>
+
+      <!-- Student Card -->
+      <div class="portal-card student" onclick="window.location.href='/login/student'">
+        <div class="portal-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="portal-title">Sinh Viên</div>
+        <div class="portal-desc">Đăng nhập bằng MSSV để xem các lớp đang tham gia và lịch sử điểm danh cá nhân.</div>
+        <div class="portal-arrow">
+          Truy cập <i class="fa-solid fa-arrow-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

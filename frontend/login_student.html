@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập Sinh Viên - QRAttend</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    .login-role-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #a7f3d0; padding: 6px 14px; border-radius: 10px;
+      font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+      margin-bottom: 20px;
+    }
+    .back-link {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: var(--text-secondary); font-size: 13px; font-weight: 600;
+      text-decoration: none; margin-bottom: 20px; transition: color 0.2s;
+    }
+    .back-link:hover { color: var(--text-primary); }
+  </style>
+</head>
+<body>
+  <div class="container container-narrow" style="margin-top: 60px;">
+    <!-- Back Link -->
+    <a href="/login" class="back-link">
+      <i class="fa-solid fa-arrow-left"></i> Quay lại chọn cổng
+    </a>
+
+    <!-- Brand Header -->
+    <div class="header-brand">
+      <div class="logo-icon" style="background: linear-gradient(135deg, #10b981, #3b82f6);">
+        <i class="fa-solid fa-graduation-cap"></i>
+      </div>
+      <h1>QRAttend</h1>
+      <p>Cổng Đăng nhập Sinh Viên</p>
+    </div>
+
+    <!-- Login Card -->
+    <div class="premium-card" style="border-top: 4px solid transparent; border-image: linear-gradient(90deg, #10b981, #3b82f6) 1;">
+      <div style="text-align: center;">
+        <span class="login-role-badge">
+          <i class="fa-solid fa-graduation-cap"></i> Sinh Viên
+        </span>
+      </div>
+
+      <form id="login-form" onsubmit="handleStudentLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="studentId">Mã Số Sinh Viên (MSSV)</label>
+          <div class="input-container">
+            <span class="input-icon"><i class="fa-solid fa-id-card"></i></span>
+            <input type="text" id="studentId" class="form-input" placeholder="Ví dụ: 20235317" required>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="btn-login" style="margin-top: 10px; background: linear-gradient(135deg, #10b981, #3b82f6);">
+          <span>Đăng nhập Sinh Viên</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+
+        <!-- Error Message -->
+        <div id="alert-box" class="alert alert-danger" style="display: none;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="alert-message">Không tìm thấy MSSV!</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/config.js"></script>
+  <script src="/login_student.js"></script>
+</body>
+</html>

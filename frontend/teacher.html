@@ -3,32 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bảng Điều Khiển Giáo Viên</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <title>Dashboard Giảng Viên - QRAttend</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-light">
-  <div class="container py-5" style="max-width: 600px;">
-    <a href="index.html" class="btn btn-sm btn-outline-secondary mb-4 rounded-pill">⬅ Quay lại trang chủ</a>
-    <h1 class="mb-4">Dashboard <span>Giáo Viên</span></h1>
-    
-    <div class="card mb-4 border-0 shadow-sm p-4 rounded-4">
-      <h3 class="h5 mb-3 fw-bold text-primary">📢 Tạo mã QR điểm danh</h3>
-      <input type="text" id="sessionId" class="form-control mb-3" placeholder="Nhập mã buổi học (VD: CS101)">
-      <button class="btn btn-primary btn-lg w-100 fw-bold" onclick="generateQR()">Tạo mã QR</button>
-      <div id="qrcode" class="mt-4 text-center d-flex flex-column align-items-center"></div>
+<body>
+  <!-- Header Navbar -->
+  <header class="navbar">
+    <div class="nav-brand">
+      <div class="nav-brand-logo"><i class="fa-solid fa-chalkboard-user"></i></div>
+      <span>QRAttend Teacher</span>
+    </div>
+    <div class="nav-user">
+      <span class="nav-username"><i class="fa-solid fa-user-tie"></i> Giảng viên: <strong id="teacher-name">Giảng viên</strong></span>
+      <button class="btn-logout" onclick="handleLogout()"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+    </div>
+  </header>
+
+  <div class="container" style="max-width: 1200px;">
+    <!-- Selector chọn lớp dạy -->
+    <div class="premium-card" style="margin-bottom: 25px; padding: 20px 30px;">
+      <div class="form-group" style="margin-bottom: 0; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <label class="form-label" style="margin-bottom: 0; font-size: 16px; white-space: nowrap;"><i class="fa-solid fa-graduation-cap"></i> Chọn Lớp Học Phần:</label>
+        <select id="class-select" class="form-select" style="max-width: 400px;" onchange="onClassChange()">
+          <option value="">-- Chọn lớp dạy --</option>
+          <!-- Nạp tự động từ API -->
+        </select>
+      </div>
     </div>
 
-    <div class="card border-0 shadow-sm p-4 rounded-4">
-      <h3 class="h5 mb-3 fw-bold text-success">📊 Xem báo cáo điểm danh</h3>
-      <input type="text" id="statSessionId" class="form-control mb-3" placeholder="Nhập mã buổi học (VD: CS101)">
-      <button class="btn btn-outline-success w-100 fw-bold" onclick="getStatistics()">Xem danh sách chi tiết</button>
-      <div id="statistics" class="mt-4"></div>
+    <!-- Dashboard Layout Grid (Chỉ hiện khi đã chọn lớp) -->
+    <div id="teacher-dashboard-layout" class="dashboard-grid" style="display: none;">
+      <!-- Left Menu Sidebar -->
+      <aside class="sidebar-menu">
+        <button class="sidebar-btn active" onclick="switchTab('session-create')">
+          <i class="fa-solid fa-qrcode"></i>
+          <span>Tạo Điểm Danh</span>
+        </button>
+        <button class="sidebar-btn" onclick="switchTab('sessions-history')">
+          <i class="fa-solid fa-history"></i>
+          <span>Lịch Sử Phiên</span>
+        </button>
+        <button class="sidebar-btn" onclick="switchTab('students-list')">
+          <i class="fa-solid fa-users"></i>
+          <span>Danh Sách Lớp</span>
+        </button>
+      </aside>
+
+      <!-- Right Panel Content -->
+      <main class="premium-card">
+        
+        <!-- Tab 1: Tạo Phiên Điểm Danh -->
+        <section id="tab-session-create" class="panel-section active">
+          <h2 class="panel-title" style="margin-bottom: 20px;"><i class="fa-solid fa-qrcode"></i> Tạo phiên điểm danh mới</h2>
+          
+          <div id="session-setup-form">
+            <div class="form-group">
+              <label class="form-label">Nhãn buổi học (Tùy chọn)</label>
+              <input type="text" id="session-label" class="form-input form-input-noicon" placeholder="Ví dụ: Buổi học số 1, Kiểm tra giữa kỳ...">
+            </div>
+            <button class="btn-primary" onclick="createSession()"><i class="fa-solid fa-plus-circle"></i> Bắt đầu phiên điểm danh</button>
+          </div>
+
+          <!-- Hiển thị mã QR khi đã tạo session -->
+          <div id="session-qr-display" class="qr-container" style="display: none; text-align: center; margin-top: 10px;">
+            <div class="session-info-badge">
+              Phiên: <strong id="display-session-id">SESS_xxxxxx</strong> - <span id="display-session-label">Buổi 1</span>
+            </div>
+            <div id="qrcode" class="qr-box"></div>
+            <p style="color: var(--text-secondary); font-size: 13px; font-weight: 550; max-width: 400px; margin: 0 auto; line-break: anywhere;" id="qr-url-text"></p>
+            <button class="btn-primary btn-danger" style="max-width: 250px; margin-top: 15px;" onclick="closeCurrentSession()"><i class="fa-solid fa-circle-stop"></i> Đóng phiên điểm danh</button>
+          </div>
+        </section>
+
+        <!-- Tab 2: Lịch Sử Phiên -->
+        <section id="tab-sessions-history" class="panel-section">
+          <h2 class="panel-title" style="margin-bottom: 20px;"><i class="fa-solid fa-history"></i> Lịch sử điểm danh các phiên</h2>
+          
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Mã Phiên</th>
+                  <th>Nhãn/Mô tả</th>
+                  <th>Thời Gian Tạo</th>
+                  <th>Đã Điểm Danh</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="sessions-table-body">
+                <!-- Chèn động bằng JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Tab 3: Danh Sách Sinh Viên / Điểm Danh Thủ Công -->
+        <section id="tab-students-list" class="panel-section">
+          <h2 class="panel-title" style="margin-bottom: 20px;"><i class="fa-solid fa-users"></i> Danh sách sinh viên thuộc lớp học phần</h2>
+          
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>MSSV</th>
+                  <th>Họ và Tên</th>
+                  <th>Lớp Sinh Hoạt</th>
+                  <th>Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="students-table-body">
+                <!-- Chèn động bằng JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+      </main>
     </div>
   </div>
-  
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+  <!-- ================= POPUP MODALS ================= -->
+
+  <!-- Modal 1: Chi tiết phiên điểm danh (Xem danh sách sinh viên đã điểm danh) -->
+  <div id="modal-session-detail" class="modal-overlay">
+    <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+      <div class="modal-header">
+        <h3 class="modal-title">Sinh viên đã điểm danh - Phiên <span id="detail-session-id">SESS_xxxxxx</span></h3>
+        <button class="modal-close" onclick="closeModal('modal-session-detail')">&times;</button>
+      </div>
+      
+      <div class="table-wrapper" style="margin-bottom: 15px;">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Ảnh chân dung</th>
+              <th>MSSV</th>
+              <th>Họ và Tên</th>
+              <th>Thời Gian Quét</th>
+              <th>Hình Thức</th>
+            </tr>
+          </thead>
+          <tbody id="attendance-detail-table-body">
+            <!-- Chèn động bằng JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Popup xem ảnh selfie cỡ lớn -->
+  <div id="modal-image-view" class="modal-overlay" onclick="closeModal('modal-image-view')">
+    <div class="modal-content" style="max-width: 450px; background: transparent; border: none; box-shadow: none; text-align: center;">
+      <img id="modal-large-image" src="" class="image-modal-img" alt="Selfie cỡ lớn">
+    </div>
+  </div>
+
+  <!-- Modal 3: Popup chọn phiên để điểm danh thủ công -->
+  <div id="modal-select-session-manual" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Chọn buổi học để điểm danh thủ công</h3>
+        <button class="modal-close" onclick="closeModal('modal-select-session-manual')">&times;</button>
+      </div>
+      <form id="form-manual-att" onsubmit="submitManualAttendance(event)">
+        <input type="hidden" id="manual-student-id">
+        <div class="form-group">
+          <label class="form-label">Chọn phiên điểm danh:</label>
+          <select id="manual-session-select" class="form-select" required>
+            <!-- Lấy tự động qua JS -->
+          </select>
+        </div>
+        <button type="submit" class="btn-primary">Xác nhận Điểm Danh</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Thư viện tạo QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="config.js"></script>
   <script src="teacher.js"></script>
 </body>
