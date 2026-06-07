@@ -22,7 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Chuyển đổi giữa các tab
+let currentActiveTab = 'students';
+
 function switchTab(tabName) {
+  currentActiveTab = tabName;
   // Cập nhật Active Sidebar Button
   const sidebarBtns = document.querySelectorAll('.sidebar-btn');
   sidebarBtns.forEach(btn => btn.classList.remove('active'));
@@ -37,11 +40,20 @@ function switchTab(tabName) {
   const activeSec = document.getElementById(`tab-${tabName}`);
   if (activeSec) activeSec.classList.add('active');
 
-  // Fetch tương ứng khi đổi tab
-  if (tabName === 'students') fetchStudents();
-  if (tabName === 'teachers') fetchTeachers();
-  if (tabName === 'subjects') fetchSubjects();
-  if (tabName === 'classes') fetchClasses();
+  // Fetch tương ứng khi đổi tab CHỈ KHI dữ liệu rỗng (tránh load lại liên tục)
+  if (tabName === 'students' && allStudents.length === 0) fetchStudents();
+  if (tabName === 'teachers' && allTeachers.length === 0) fetchTeachers();
+  if (tabName === 'subjects' && allSubjects.length === 0) fetchSubjects();
+  if (tabName === 'classes' && allClasses.length === 0) fetchClasses();
+}
+
+// Nút làm mới dữ liệu thủ công
+function refreshCurrentTab() {
+  showToast('Đang làm mới dữ liệu...', 'success');
+  if (currentActiveTab === 'students') fetchStudents();
+  if (currentActiveTab === 'teachers') fetchTeachers();
+  if (currentActiveTab === 'subjects') fetchSubjects();
+  if (currentActiveTab === 'classes') fetchClasses();
 }
 
 // Xử lý đăng xuất
