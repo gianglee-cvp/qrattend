@@ -177,6 +177,28 @@ async function seedMongoDb() {
   }
 }
 
+// ================= VERCEL SERVERLESS OPTIMIZATION =================
+// Đảm bảo MongoDB luôn kết nối trước khi xử lý API, ngăn lỗi ghi file local_db.json trên Serverless (Read-only filesystem)
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    if (mongoose.connection.readyState === 0) {
+      try {
+        await mongoose.connect(MONGO_URI, {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          serverSelectionTimeoutMS: 5000
+        });
+        isMongoConnected = true;
+      } catch (e) {
+        isMongoConnected = false;
+      }
+    } else if (mongoose.connection.readyState === 1) {
+      isMongoConnected = true;
+    }
+  }
+  next();
+});
+
 // ================= AUTH MIDDLEWARE =================
 function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
