@@ -256,11 +256,9 @@ app.post('/api/login', async (req, res) => {
     let teacher = null;
     if (isMongoConnected) {
       try {
-        const queryPromise = Teacher.findOne({ username, password }).exec();
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('MongoDB query timeout')), 2000));
-        teacher = await Promise.race([queryPromise, timeoutPromise]);
+        teacher = await Teacher.findOne({ username, password });
       } catch (err) {
-        console.log('MongoDB error or timeout, fallback to local', err.message);
+        console.log('MongoDB error, fallback to local', err.message);
       }
     }
     if (!teacher) {
