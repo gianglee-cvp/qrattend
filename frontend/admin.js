@@ -168,6 +168,8 @@ async function fetchStudents() {
     });
     if (!res.ok) throw new Error();
     allStudents = await res.json();
+    
+    tbody.innerHTML = '';
 
     if (allStudents.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Chưa có sinh viên nào.</td></tr>`;
@@ -210,6 +212,8 @@ async function fetchTeachers() {
     });
     if (!res.ok) throw new Error();
     allTeachers = await res.json();
+    
+    tbody.innerHTML = '';
 
     if (allTeachers.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Chưa có giảng viên nào.</td></tr>`;
@@ -247,6 +251,8 @@ async function fetchSubjects() {
     });
     if (!res.ok) throw new Error();
     allSubjects = await res.json();
+    
+    tbody.innerHTML = '';
 
     if (allSubjects.length === 0) {
       tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">Chưa có học phần nào.</td></tr>`;
@@ -287,6 +293,8 @@ async function fetchClasses() {
     });
     if (!res.ok) throw new Error();
     allClasses = await res.json();
+    
+    tbody.innerHTML = '';
 
     if (allClasses.length === 0) {
       tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Chưa có lớp học phần nào.</td></tr>`;
