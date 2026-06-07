@@ -272,38 +272,45 @@ app.get('/api/debug-db', (req, res) => {
 
 // ================= AUTH ROUTES =================
 app.post('/api/login', async (req, res) => {
-  const { username, password, role } = req.body;
+  try {
+    const { username, password, role } = req.body;
 
-  if (role === 'admin') {
-    if (username === 'admin' && password === 'admin123') {
-      const token = jwt.sign({ username, role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
-      return res.json({ token, name: 'Quản trị viên', role: 'admin' });
-    }
-    return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu admin sai!' });
-  }
-
-  if (role === 'teacher') {
-    let teacher = null;
-    if (isMongoConnected) {
-      try {
-        teacher = await Teacher.findOne({ username, password });
-      } catch (err) {
-        console.log('MongoDB error, fallback to local', err.message);
+    if (role === 'admin') {
+      if (username === 'admin' && password === 'admin123') {
+        const token = jwt.sign({ username, role: 'admin' }, JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ token, name: 'Quản trị viên', role: 'admin' });
       }
-    }
-    if (!teacher) {
-      const db = readLocalDb();
-      teacher = db.teachers.find(t => t.username === username && t.password === password);
+      return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu admin sai!' });
     }
 
-    if (teacher) {
-      const token = jwt.sign({ teacherId: teacher.teacherId, name: teacher.name, role: 'teacher' }, JWT_SECRET, { expiresIn: '24h' });
-      return res.json({ token, name: teacher.name, role: 'teacher', teacherId: teacher.teacherId });
+    if (role === 'teacher') {
+      let teacher = null;
+      if (isMongoConnected) {
+        try {
+          teacher = await Teacher.findOne({ username, password }).maxTimeMS(3000);
+        } catch (err) {
+          console.log('MongoDB error, fallback to local', err.message);
+        }
+      }
+      if (!teacher) {
+        const db = readLocalDb();
+        if (db && Array.isArray(db.teachers)) {
+          teacher = db.teachers.find(t => t.username === username && t.password === password);
+        }
+      }
+
+      if (teacher) {
+        const token = jwt.sign({ teacherId: teacher.teacherId, name: teacher.name, role: 'teacher' }, JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ token, name: teacher.name, role: 'teacher', teacherId: teacher.teacherId });
+      }
+      return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu giảng viên sai!' });
     }
-    return res.status(401).json({ message: 'Tài khoản hoặc mật khẩu giảng viên sai!' });
+
+    return res.status(400).json({ message: 'Vai trò đăng nhập không hợp lệ!' });
+  } catch (err) {
+    console.error('Lỗi đăng nhập:', err);
+    return res.status(500).json({ message: 'Lỗi hệ thống: ' + err.message });
   }
-
-  return res.status(400).json({ message: 'Vai trò đăng nhập không hợp lệ!' });
 });
 
 

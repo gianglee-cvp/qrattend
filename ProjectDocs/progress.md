@@ -84,5 +84,6 @@
     - Sửa đổi Middleware ở backend để tự động phát hiện trạng thái đang kết nối (`readyState === 2`). Middleware sử dụng cơ chế Promise chờ tối đa 4 giây để Mongoose hoàn tất kết nối trước khi cho phép request tiếp tục. Điều này giải quyết triệt để vấn đề đăng nhập chậm / lỗi đăng nhập ở lần đầu truy cập (Cold Start) và ngăn chặn việc các request song song bị đẩy về database cục bộ khi DB Cloud thực tế vẫn hoạt động.
     - Loại bỏ cơ chế `Promise.race` 2 giây quá ngắn ở API đăng nhập để tránh việc ngắt kết nối hợp lệ trong thời gian khởi động Serverless.
     - Thêm endpoint gỡ lỗi đặc biệt `/api/debug-db` hiển thị chi tiết trạng thái readyState của Mongoose và thông báo lỗi kết nối MongoDB Atlas mới nhất để phục vụ công tác giám sát trên môi trường production.
+    - Bọc toàn bộ logic endpoint `/api/login` trong khối `try/catch` để tránh treo API khi xảy ra lỗi ngoài ý muốn ở backend, đồng thời giới hạn thời gian truy vấn MongoDB tối đa 3 giây bằng `.maxTimeMS(3000)` và kiểm tra cấu trúc mảng `local_db.json` trước khi truy cập nhằm đảm bảo client luôn nhận được phản hồi và nút đăng nhập được khôi phục trạng thái nhập lại khi thông tin sai.
 
 
