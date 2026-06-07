@@ -17,7 +17,7 @@ async function handleTeacherLogin(e) {
   const password = document.getElementById('password').value.trim();
 
   const btnLogin = document.getElementById('btn-login');
-  const originalText = btnLogin.innerHTML;
+  if (btnLogin.disabled) return; // Prevent double clicks
   btnLogin.disabled = true;
   btnLogin.innerHTML = `<span>Đang xử lý...</span><i class="fa-solid fa-spinner fa-spin"></i>`;
 
@@ -45,6 +45,6 @@ async function handleTeacherLogin(e) {
     showAlert(err.message);
   } finally {
     btnLogin.disabled = false;
-    btnLogin.innerHTML = originalText;
+    btnLogin.innerHTML = `<span>Đăng nhập Giảng Viên</span><i class="fa-solid fa-arrow-right"></i>`;
   }
 }
