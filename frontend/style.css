@@ -490,6 +490,24 @@ body {
   background: rgba(255, 255, 255, 0.02);
 }
 
+/* Custom Scrollbar for Table Wrapper */
+.table-wrapper::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.table-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+}
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2));
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.4), rgba(168, 85, 247, 0.4));
+}
+
 .custom-table {
   width: 100%;
   border-collapse: collapse;

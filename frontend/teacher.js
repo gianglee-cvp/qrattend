@@ -128,6 +128,12 @@ function closeModal(modalId) {
 
 // ================= TAB 1: TẠO QR ĐIỂM DANH =================
 async function createSession() {
+  const btn = document.getElementById('btn-start-session');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Đang tạo phiên...`;
+  }
+
   const label = document.getElementById('session-label').value.trim();
   
   try {
@@ -187,6 +193,11 @@ async function createSession() {
 
   } catch (err) {
     showToast(err.message || 'Lỗi tạo phiên điểm danh!', 'error');
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<i class="fa-solid fa-plus-circle"></i> Bắt đầu phiên điểm danh`;
+    }
   }
 }
 

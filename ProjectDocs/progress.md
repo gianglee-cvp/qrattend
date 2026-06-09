@@ -99,7 +99,6 @@
   - Hiển thị đầy đủ thông tin: MSSV, Họ và tên, Lớp sinh hoạt, Trạng thái có mặt/vắng cho từng buổi (✓ xanh lá / ✗ đỏ), kèm ký hiệu hình thức (Quét QR hoặc điểm danh thủ công) và tổng số buổi đi học dưới dạng tỉ lệ cùng phần trăm trực quan.
   - Bổ sung API backend `GET /api/attendance/class/:classId` để nạp toàn bộ danh sách điểm danh của một lớp học phần nhanh chóng chỉ trong một request, tối ưu hóa tốc độ tải dữ liệu ma trận.
   - Loại bỏ hoàn toàn modal cũ `modal-select-session-manual` và các hàm Javascript không còn sử dụng (`openManualAttendanceModal`, `submitManualAttendance`) giúp mã nguồn sạch đẹp.
-
-
-
-
+- **Nâng Cấp Giao Diện & Sửa Lỗi Hệ Thống:**
+  - **Tối ưu hóa thanh cuộn ngang (Scrollbar):** Thiết kế lại thanh cuộn của `.table-wrapper` bằng CSS custom `-webkit-scrollbar` sử dụng gradient màu từ Indigo sang Purple có độ trong suốt phù hợp với phong cách Glassmorphism của ứng dụng, giúp bảng ma trận cuộn ngang cực kỳ mượt mà và đẹp mắt.
+  - **Khắc phục lỗi tạo nhiều phiên trùng lặp (Race Condition):** Bổ sung cơ chế khóa trạng thái (disabled) và hiệu ứng xoay tải dữ liệu (`fa-spinner`) cho nút "Bắt đầu phiên điểm danh" trong suốt quá trình gửi yêu cầu tạo phiên lên máy chủ, ngăn ngừa việc giảng viên click nhanh nhiều lần tạo ra các phiên rác.
