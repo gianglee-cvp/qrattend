@@ -86,4 +86,13 @@
     - Thêm endpoint gỡ lỗi đặc biệt `/api/debug-db` hiển thị chi tiết trạng thái readyState của Mongoose và thông báo lỗi kết nối MongoDB Atlas mới nhất để phục vụ công tác giám sát trên môi trường production.
     - Bọc toàn bộ logic endpoint `/api/login` trong khối `try/catch` để tránh treo API khi xảy ra lỗi ngoài ý muốn ở backend, đồng thời giới hạn thời gian truy vấn MongoDB tối đa 3 giây bằng `.maxTimeMS(3000)` và kiểm tra cấu trúc mảng `local_db.json` trước khi truy cập nhằm đảm bảo client luôn nhận được phản hồi và nút đăng nhập được khôi phục trạng thái nhập lại khi thông tin sai.
 
+## Cập nhật mới nhất (09/06/2026)
+- **Nâng Cấp Xem Chi Tiết Phiên Điểm Danh Của Giảng Viên:**
+  - Sửa đổi giao diện bảng chi tiết phiên điểm danh (`modal-session-detail`) trong `teacher.html` để hiển thị tất cả thành viên trong lớp học phần, thay vì chỉ hiện sinh viên đã điểm danh.
+  - Bổ sung cột **Trạng thái** hiển thị rõ ràng "Có mặt" (xanh lá) hoặc "Vắng" (đỏ).
+  - Bổ sung cột **Hành động** cho phép giáo viên click trực tiếp vào nút **Điểm danh** để điểm danh thủ công ngay lập tức cho sinh viên đang vắng tại phiên đó mà không cần phải chuyển sang tab khác.
+  - Cập nhật logic trong `teacher.js` để gọi song song API thống kê phiên (`GET /api/statistics/:sessionId`) và danh sách sinh viên của lớp (`GET /api/teacher/classes/:classId/students`), sau đó map dữ liệu để hiển thị chính xác.
+  - Tích hợp gọi API `/api/attendance/manual` trực tiếp khi click điểm danh thủ công trong popup modal chi tiết phiên và tự động reload dữ liệu chi tiết của phiên đó cùng bảng lịch sử để cập nhật số lượng.
+
+
 

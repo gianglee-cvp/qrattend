@@ -254,7 +254,7 @@ async function fetchSessionCount(sessId) {
   } catch (e) {}
 }
 
-// Xem chi tiết phiên đã điểm danh (Bảng danh sách SV đã chụp ảnh)
+// Xem chi tiết phiên đã điểm danh (Bảng danh sách tất cả thành viên trong lớp)
 async function viewSessionDetails(sessId, forceRefresh = false) {
   document.getElementById('detail-session-id').innerText = sessId;
   const tbody = document.getElementById('attendance-detail-table-body');
@@ -262,54 +262,116 @@ async function viewSessionDetails(sessId, forceRefresh = false) {
 
   // Load from cache if not forcing refresh
   if (sessionDetailsCache[sessId] && !forceRefresh) {
-    renderSessionDetails(sessionDetailsCache[sessId]);
+    const cached = sessionDetailsCache[sessId];
+    renderSessionDetailsNew(sessId, cached.students, cached.attendances);
     if (!forceRefresh) showToast('Tải từ bộ nhớ đệm (Nhấn Làm mới nếu cần)', 'warning');
     return;
   }
 
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu...</td></tr>';
 
   try {
-    const res = await fetch(`${API_URL}/statistics/${sessId}`);
-    const data = await res.json();
+    // 1. Fetch attendance records for this session
+    const statsRes = await fetch(`${API_URL}/statistics/${sessId}`);
+    const statsData = await statsRes.json();
     
-    sessionDetailsCache[sessId] = data; // save to cache
-    renderSessionDetails(data);
+    // 2. Fetch all students in the class
+    const studentsRes = await fetch(`${API_URL}/teacher/classes/${currentClassId}/students`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!studentsRes.ok) throw new Error("Không thể tải danh sách sinh viên lớp.");
+    const students = await studentsRes.json();
+
+    sessionDetailsCache[sessId] = { students, attendances: statsData.list }; // save to cache
+    
+    renderSessionDetailsNew(sessId, students, statsData.list);
     if (forceRefresh) showToast('Đã làm mới dữ liệu phiên!', 'success');
   } catch (err) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--danger)">Lỗi tải dữ liệu chi tiết!</td></tr>';
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--danger)">Lỗi tải dữ liệu chi tiết!</td></tr>';
   }
 }
 
-function renderSessionDetails(data) {
+function renderSessionDetailsNew(sessId, allStudents, attendances) {
   const tbody = document.getElementById('attendance-detail-table-body');
   tbody.innerHTML = '';
   
-  if (!data || !data.list || data.list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Chưa có sinh viên nào điểm danh phiên này.</td></tr>';
+  if (!allStudents || allStudents.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Lớp học phần này không có sinh viên nào.</td></tr>';
     return;
   }
 
-  data.list.forEach(item => {
-    const attTime = new Date(item.timestamp).toLocaleTimeString('vi-VN');
-    const imgHtml = item.image 
-      ? `<img src="${item.image}" class="attendance-selfie" onclick="viewLargeImage('${item.image}')" title="Click để xem ảnh lớn">`
-      : `<span style="color: var(--text-secondary); font-size:12px;">Không có</span>`;
+  allStudents.forEach(student => {
+    // Find if this student has checked in in this session
+    const att = attendances.find(a => a.studentId === student.studentId);
     
-    const typeHtml = item.isManual
-      ? `<span class="badge badge-danger" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b;"><i class="fa-solid fa-user-pen"></i> Thủ công</span>`
-      : `<span class="badge badge-success"><i class="fa-solid fa-qrcode"></i> Quét QR</span>`;
+    let statusHtml = '';
+    let timeHtml = '-';
+    let typeHtml = '-';
+    let imgHtml = `<span style="color: var(--text-secondary); font-size:12px;">Không có</span>`;
+    let actionHtml = '';
+
+    if (att) {
+      statusHtml = `<span class="badge badge-success"><i class="fa-solid fa-circle-check"></i> Có mặt</span>`;
+      timeHtml = new Date(att.timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+      typeHtml = att.isManual
+        ? `<span class="badge" style="background: rgba(245, 158, 11, 0.2); color: #f59e0b; font-size: 11px;"><i class="fa-solid fa-user-pen"></i> Thủ công</span>`
+        : `<span class="badge badge-success" style="font-size: 11px;"><i class="fa-solid fa-qrcode"></i> Quét QR</span>`;
+      
+      imgHtml = att.image 
+        ? `<img src="${att.image}" class="attendance-selfie" onclick="viewLargeImage('${att.image}')" title="Click để xem ảnh lớn">`
+        : `<span style="color: var(--text-secondary); font-size:12px;">Không có</span>`;
+        
+      actionHtml = `<span style="color: var(--success); font-size: 13px; font-weight: 600;"><i class="fa-solid fa-check"></i> Hợp lệ</span>`;
+    } else {
+      statusHtml = `<span class="badge badge-danger"><i class="fa-solid fa-circle-xmark"></i> Vắng</span>`;
+      actionHtml = `
+        <button class="btn-small" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 5px 8px;" onclick="markManualAttendanceInSession('${student.studentId}', '${sessId}')">
+          <i class="fa-solid fa-user-check"></i> Điểm danh
+        </button>
+      `;
+    }
 
     tbody.innerHTML += `
       <tr>
-        <td>${imgHtml}</td>
-        <td><strong>${item.studentId}</strong></td>
-        <td>${item.name}</td>
-        <td>${attTime}</td>
+        <td><strong>${student.studentId}</strong></td>
+        <td>${student.name}</td>
+        <td>${statusHtml}</td>
+        <td>${timeHtml}</td>
         <td>${typeHtml}</td>
+        <td style="text-align: center;">${imgHtml}</td>
+        <td>${actionHtml}</td>
       </tr>
     `;
   });
+}
+
+// Điểm danh thủ công ngay từ trong bảng chi tiết phiên
+async function markManualAttendanceInSession(studentId, sessionId) {
+  if (!confirm(`Xác nhận điểm danh thủ công cho sinh viên ${studentId}?`)) return;
+  try {
+    const res = await fetch(`${API_URL}/attendance/manual`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ studentId, sessionId, classId: currentClassId })
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message);
+
+    showToast('Điểm danh thủ công thành công!', 'success');
+    
+    // Nạp lại chi tiết phiên (force refresh)
+    viewSessionDetails(sessionId, true);
+    
+    // Nạp lại số lượng sinh viên ở ngoài bảng danh sách phiên
+    fetchSessionsHistory();
+  } catch (err) {
+    showToast(err.message || 'Lỗi điểm danh thủ công!', 'error');
+  }
 }
 
 // Xem ảnh selfie cỡ lớn

@@ -133,9 +133,9 @@
 
   <!-- Modal 1: Chi tiết phiên điểm danh (Xem danh sách sinh viên đã điểm danh) -->
   <div id="modal-session-detail" class="modal-overlay">
-    <div class="modal-content" style="max-width: 700px; max-height: 85vh; overflow-y: auto;">
+    <div class="modal-content" style="max-width: 850px; max-height: 85vh; overflow-y: auto;">
       <div class="modal-header">
-        <h3 class="modal-title">Sinh viên đã điểm danh - Phiên <span id="detail-session-id">SESS_xxxxxx</span></h3>
+        <h3 class="modal-title">Chi tiết điểm danh - Phiên <span id="detail-session-id">SESS_xxxxxx</span></h3>
         <div style="display: flex; gap: 10px; align-items: center;">
           <button class="btn-small btn-small-primary" style="padding: 5px 10px; font-size: 13px;" onclick="viewSessionDetails(document.getElementById('detail-session-id').innerText, true)">
             <i class="fa-solid fa-rotate"></i> Làm mới
@@ -148,11 +148,13 @@
         <table class="custom-table">
           <thead>
             <tr>
-              <th>Ảnh chân dung</th>
               <th>MSSV</th>
               <th>Họ và Tên</th>
-              <th>Thời Gian Quét</th>
-              <th>Hình Thức</th>
+              <th>Trạng thái</th>
+              <th>Thời gian</th>
+              <th>Hình thức</th>
+              <th style="text-align: center;">Ảnh selfie</th>
+              <th>Hành động</th>
             </tr>
           </thead>
           <tbody id="attendance-detail-table-body">
