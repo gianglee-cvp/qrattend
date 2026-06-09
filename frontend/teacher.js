@@ -400,25 +400,15 @@ async function fetchStudentsList() {
   table.innerHTML = `<thead><tr><th style="text-align: center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu bảng tổng hợp...</th></tr></thead>`;
 
   try {
-    const [studentsRes, sessionsRes, attendanceRes] = await Promise.all([
-      fetch(`${API_URL}/teacher/classes/${currentClassId}/students`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }),
-      fetch(`${API_URL}/sessions/${currentClassId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      }),
-      fetch(`${API_URL}/attendance/class/${currentClassId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-    ]);
+    const res = await fetch(`${API_URL}/teacher/classes/${currentClassId}/attendance-matrix`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
 
-    if (!studentsRes.ok || !sessionsRes.ok || !attendanceRes.ok) {
+    if (!res.ok) {
       throw new Error("Lỗi tải thông tin từ máy chủ.");
     }
 
-    const students = await studentsRes.json();
-    const sessions = await sessionsRes.json();
-    const attendances = await attendanceRes.json();
+    const { students, sessions, attendances } = await res.json();
 
     classStudents = students;
     classSessions = sessions;

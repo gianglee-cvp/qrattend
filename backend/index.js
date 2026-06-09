@@ -76,7 +76,7 @@ const Class = mongoose.model('Class', ClassSchema);
 
 const SessionSchema = new mongoose.Schema({
   sessionId: { type: String, unique: true, required: true },
-  classId: { type: String, required: true },
+  classId: { type: String, required: true, index: true },
   teacherId: { type: String, required: true },
   label: String,
   createdAt: { type: Date, default: Date.now },
@@ -85,10 +85,10 @@ const SessionSchema = new mongoose.Schema({
 const Session = mongoose.model('Session', SessionSchema);
 
 const AttendanceSchema = new mongoose.Schema({
-  studentId: { type: String, required: true },
+  studentId: { type: String, required: true, index: true },
   name: { type: String, required: true },
-  sessionId: { type: String, required: true },
-  classId: { type: String, required: true },
+  sessionId: { type: String, required: true, index: true },
+  classId: { type: String, required: true, index: true },
   image: String, // Base64 image
   timestamp: { type: Date, default: Date.now },
   isManual: { type: Boolean, default: false }
@@ -787,22 +787,73 @@ app.get('/api/sessions/:classId', authenticateToken, async (req, res) => {
   res.json(list);
 });
 
-// Lấy toàn bộ danh sách điểm danh của một lớp học phần (phục vụ bảng tổng hợp)
+// Lấy toàn bộ danh sách điểm danh của một lớp học phần (phục vụ bảng tổng hợp - loại trừ ảnh selfie)
 app.get('/api/attendance/class/:classId', authenticateToken, async (req, res) => {
   if (req.user.role !== 'teacher') return res.status(403).json({ message: 'Chỉ dành cho Giảng viên!' });
   const { classId } = req.params;
 
   if (isMongoConnected) {
     try {
-      const list = await Attendance.find({ classId }).sort({ timestamp: 1 });
+      const list = await Attendance.find({ classId }).select('-image').sort({ timestamp: 1 });
       return res.json(list);
     } catch (e) {
       return res.status(500).json({ message: 'Lỗi tải dữ liệu điểm danh: ' + e.message });
     }
   }
   const db = readLocalDb();
-  const list = db.attendances.filter(a => a.classId === classId);
+  const list = db.attendances.filter(a => a.classId === classId).map(({ image, ...rest }) => rest);
   res.json(list);
+});
+
+// Lấy đầy đủ dữ liệu cho Bảng tổng hợp ma trận điểm danh (gộp 3 request trong 1, không có ảnh selfie)
+app.get('/api/teacher/classes/:classId/attendance-matrix', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'teacher') return res.status(403).json({ message: 'Chỉ dành cho Giảng viên!' });
+  const { classId } = req.params;
+
+  let studentIds = [];
+  let students = [];
+  let sessions = [];
+  let attendances = [];
+
+  if (isMongoConnected) {
+    try {
+      // 1. Tìm lớp để lấy studentIds
+      const cls = await Class.findOne({ classId });
+      if (cls) studentIds = cls.studentIds;
+
+      // 2. Chạy đồng thời 3 truy vấn tối ưu hóa trên server
+      const [studentsData, sessionsData, attendancesData] = await Promise.all([
+        Student.find({ studentId: { $in: studentIds } }),
+        Session.find({ classId }).sort({ createdAt: 1 }),
+        Attendance.find({ classId }).select('-image').sort({ timestamp: 1 })
+      ]);
+
+      students = studentsData;
+      sessions = sessionsData;
+      attendances = attendancesData;
+
+      return res.json({ students, sessions, attendances });
+    } catch (e) {
+      return res.status(500).json({ message: 'Lỗi tải dữ liệu ma trận: ' + e.message });
+    }
+  }
+
+  // Fallback LocalDB
+  try {
+    const db = readLocalDb();
+    const cls = db.classes.find(c => c.classId === classId);
+    if (cls) studentIds = cls.studentIds;
+
+    students = db.students.filter(s => studentIds.includes(s.studentId));
+    sessions = db.sessions.filter(s => s.classId === classId).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    attendances = db.attendances
+      .filter(a => a.classId === classId)
+      .map(({ image, ...rest }) => rest);
+
+    res.json({ students, sessions, attendances });
+  } catch (e) {
+    res.status(500).json({ message: 'Lỗi tải dữ liệu ma trận LocalDB: ' + e.message });
+  }
 });
 
 // Điểm danh thủ công

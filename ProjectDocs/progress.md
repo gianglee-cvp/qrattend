@@ -97,7 +97,8 @@
   - Xóa bỏ logic điểm danh thủ công cũ và nút bấm đơn lẻ trong Tab 3.
   - Thiết kế bảng tổng hợp ma trận điểm danh động (`students-matrix-table`) tự động co giãn theo số lượng sinh viên và số buổi học đã tạo phiên điểm danh.
   - Hiển thị đầy đủ thông tin: MSSV, Họ và tên, Lớp sinh hoạt, Trạng thái có mặt/vắng cho từng buổi (✓ xanh lá / ✗ đỏ), kèm ký hiệu hình thức (Quét QR hoặc điểm danh thủ công) và tổng số buổi đi học dưới dạng tỉ lệ cùng phần trăm trực quan.
-  - Bổ sung API backend `GET /api/attendance/class/:classId` để nạp toàn bộ danh sách điểm danh của một lớp học phần nhanh chóng chỉ trong một request, tối ưu hóa tốc độ tải dữ liệu ma trận.
+  - Bổ sung API backend tổng hợp `GET /api/teacher/classes/:classId/attendance-matrix` để gộp 3 truy vấn (Sinh viên, Phiên học, Điểm danh) thành 1 request duy nhất từ client, đồng thời loại trừ hoàn toàn trường ảnh selfie (`image` Base64) giúp giảm ~99% dung lượng gói tin tải về và tối ưu hóa tối đa tốc độ phản hồi.
+  - Bổ sung Mongoose `index: true` cho trường `classId`, `studentId`, `sessionId` trong `SessionSchema` và `AttendanceSchema` để tối ưu hiệu năng truy vấn trên MongoDB Atlas từ $O(N)$ xuống $O(\log N)$.
   - Loại bỏ hoàn toàn modal cũ `modal-select-session-manual` và các hàm Javascript không còn sử dụng (`openManualAttendanceModal`, `submitManualAttendance`) giúp mã nguồn sạch đẹp.
 - **Nâng Cấp Giao Diện & Sửa Lỗi Hệ Thống:**
   - **Tối ưu hóa thanh cuộn ngang (Scrollbar) & Bố cục cột:** Thiết kế lại thanh cuộn của `.table-wrapper` bằng CSS custom `-webkit-scrollbar` sử dụng gradient màu từ Indigo sang Purple có độ trong suốt phù hợp với phong cách Glassmorphism của ứng dụng, giúp bảng ma trận cuộn ngang cực kỳ mượt mà và đẹp mắt. Đồng thời áp dụng thuộc tính `white-space: nowrap` và cài đặt `min-width` phù hợp cho các cột MSSV, Họ và tên, Lớp sinh hoạt để chúng luôn hiển thị trên cùng một dòng mà không bị xuống dòng khi số lượng phiên điểm danh (cột) tăng lên.
