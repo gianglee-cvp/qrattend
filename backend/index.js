@@ -787,6 +787,24 @@ app.get('/api/sessions/:classId', authenticateToken, async (req, res) => {
   res.json(list);
 });
 
+// Lấy toàn bộ danh sách điểm danh của một lớp học phần (phục vụ bảng tổng hợp)
+app.get('/api/attendance/class/:classId', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'teacher') return res.status(403).json({ message: 'Chỉ dành cho Giảng viên!' });
+  const { classId } = req.params;
+
+  if (isMongoConnected) {
+    try {
+      const list = await Attendance.find({ classId }).sort({ timestamp: 1 });
+      return res.json(list);
+    } catch (e) {
+      return res.status(500).json({ message: 'Lỗi tải dữ liệu điểm danh: ' + e.message });
+    }
+  }
+  const db = readLocalDb();
+  const list = db.attendances.filter(a => a.classId === classId);
+  res.json(list);
+});
+
 // Điểm danh thủ công
 app.post('/api/attendance/manual', authenticateToken, async (req, res) => {
   if (req.user.role !== 'teacher') return res.status(403).json({ message: 'Chỉ giảng viên được phép điểm danh thủ công!' });

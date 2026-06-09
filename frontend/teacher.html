@@ -104,23 +104,13 @@
           </div>
         </section>
 
-        <!-- Tab 3: Danh Sách Sinh Viên / Điểm Danh Thủ Công -->
+        <!-- Tab 3: Bảng Tổng Hợp Điểm Danh -->
         <section id="tab-students-list" class="panel-section">
-          <h2 class="panel-title" style="margin-bottom: 20px;"><i class="fa-solid fa-users"></i> Danh sách sinh viên thuộc lớp học phần</h2>
+          <h2 class="panel-title" style="margin-bottom: 20px;"><i class="fa-solid fa-table"></i> Bảng tổng hợp điểm danh lớp học phần</h2>
           
           <div class="table-wrapper">
-            <table class="custom-table">
-              <thead>
-                <tr>
-                  <th>MSSV</th>
-                  <th>Họ và Tên</th>
-                  <th>Lớp Sinh Hoạt</th>
-                  <th>Hành Động</th>
-                </tr>
-              </thead>
-              <tbody id="students-table-body">
-                <!-- Chèn động bằng JS -->
-              </tbody>
+            <table class="custom-table" id="students-matrix-table">
+              <!-- Chèn động tiêu đề và dữ liệu bằng JS -->
             </table>
           </div>
         </section>
@@ -172,25 +162,7 @@
     </div>
   </div>
 
-  <!-- Modal 3: Popup chọn phiên để điểm danh thủ công -->
-  <div id="modal-select-session-manual" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title">Chọn buổi học để điểm danh thủ công</h3>
-        <button class="modal-close" onclick="closeModal('modal-select-session-manual')">&times;</button>
-      </div>
-      <form id="form-manual-att" onsubmit="submitManualAttendance(event)">
-        <input type="hidden" id="manual-student-id">
-        <div class="form-group">
-          <label class="form-label">Chọn phiên điểm danh:</label>
-          <select id="manual-session-select" class="form-select" required>
-            <!-- Lấy tự động qua JS -->
-          </select>
-        </div>
-        <button type="submit" class="btn-primary">Xác nhận Điểm Danh</button>
-      </form>
-    </div>
-  </div>
+  <!-- Modal 3 (Đã xóa): Điểm danh thủ công cũ đã được thay thế bằng bảng tổng hợp điểm danh -->
 
   <!-- Thư viện tạo QR Code -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>

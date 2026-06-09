@@ -381,102 +381,131 @@ function viewLargeImage(imageSrc) {
 }
 
 
-// ================= TAB 3: DANH SÁCH LỚP & ĐIỂM DANH THỦ CÔNG =================
+// ================= TAB 3: DANH SÁCH LỚP & BẢNG TỔNG HỢP ĐIỂM DANH =================
 async function fetchStudentsList() {
+  const table = document.getElementById('students-matrix-table');
+  if (!table) return;
+
+  table.innerHTML = `<thead><tr><th style="text-align: center; padding: 20px;"><i class="fa-solid fa-spinner fa-spin"></i> Đang tải dữ liệu bảng tổng hợp...</th></tr></thead>`;
+
   try {
-    const res = await fetch(`${API_URL}/teacher/classes/${currentClassId}/students`, {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!res.ok) throw new Error();
-    classStudents = await res.json();
+    const [studentsRes, sessionsRes, attendanceRes] = await Promise.all([
+      fetch(`${API_URL}/teacher/classes/${currentClassId}/students`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${API_URL}/sessions/${currentClassId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      }),
+      fetch(`${API_URL}/attendance/class/${currentClassId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+    ]);
 
-    const tbody = document.getElementById('students-table-body');
-    tbody.innerHTML = '';
-
-    if (classStudents.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Lớp học phần này chưa gán sinh viên nào.</td></tr>`;
-      return;
+    if (!studentsRes.ok || !sessionsRes.ok || !attendanceRes.ok) {
+      throw new Error("Lỗi tải thông tin từ máy chủ.");
     }
 
-    classStudents.forEach(s => {
-      tbody.innerHTML += `
-        <tr>
-          <td><strong>${s.studentId}</strong></td>
-          <td>${s.name}</td>
-          <td>${s.homeClass || '-'}</td>
-          <td>
-            <button class="btn-small btn-small-primary" style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.2);" onclick="openManualAttendanceModal('${s.studentId}')">
-              <i class="fa-solid fa-user-pen"></i> Điểm danh thủ công
-            </button>
-          </td>
-        </tr>
+    const students = await studentsRes.json();
+    const sessions = await sessionsRes.json();
+    const attendances = await attendanceRes.json();
+
+    classStudents = students;
+    classSessions = sessions;
+
+    // Sắp xếp các phiên điểm danh theo thứ tự thời gian tăng dần (buổi đầu tiên -> buổi gần nhất)
+    sessions.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+
+    // Xây dựng Header cho bảng tổng hợp
+    let headerHtml = `
+      <tr>
+        <th>MSSV</th>
+        <th>Họ và Tên</th>
+        <th>Lớp SH</th>
+    `;
+
+    // Thêm các cột cho từng phiên điểm danh
+    sessions.forEach((s, idx) => {
+      const colLabel = s.label && s.label !== 'Điểm danh buổi học' ? s.label : `Buổi ${idx + 1}`;
+      const createdDate = new Date(s.createdAt);
+      const displayDate = `${createdDate.getDate()}/${createdDate.getMonth() + 1}`;
+      headerHtml += `
+        <th style="text-align: center; min-width: 80px;" title="${s.label || ''} (${s.sessionId}) - Tạo lúc: ${createdDate.toLocaleDateString('vi-VN')}">
+          <div>${colLabel}</div>
+          <div style="font-size: 10px; font-weight: normal; opacity: 0.7; margin-top: 2px;">${displayDate}</div>
+        </th>
       `;
     });
 
-  } catch (err) {
-    console.error('Lỗi tải danh sách lớp.');
-  }
-}
+    headerHtml += `
+        <th style="text-align: center; min-width: 100px;">Tổng buổi</th>
+      </tr>
+    `;
 
-// Mở popup chọn buổi học để điểm danh thủ công cho sinh viên
-async function openManualAttendanceModal(studentId) {
-  document.getElementById('manual-student-id').value = studentId;
+    // Xây dựng Body cho bảng tổng hợp
+    let bodyHtml = '';
 
-  const select = document.getElementById('manual-session-select');
-  select.innerHTML = `<option value="">-- Chọn buổi học --</option>`;
+    if (students.length === 0) {
+      bodyHtml = `<tr><td colspan="${3 + sessions.length + 1}" style="text-align: center; padding: 20px;">Lớp học phần này chưa gán sinh viên nào.</td></tr>`;
+      table.innerHTML = `<thead>${headerHtml}</thead><tbody>${bodyHtml}</tbody>`;
+      return;
+    }
 
-  // Đảm bảo có lịch sử phiên
-  const res = await fetch(`${API_URL}/sessions/${currentClassId}`, {
-    headers: { 'Authorization': `Bearer ${token}` }
-  });
-  classSessions = await res.json();
+    students.forEach(student => {
+      let rowHtml = `
+        <tr>
+          <td><strong>${student.studentId}</strong></td>
+          <td>${student.name}</td>
+          <td>${student.homeClass || '-'}</td>
+      `;
 
-  if (classSessions.length === 0) {
-    showToast('Lớp học phần này chưa từng tạo phiên điểm danh nào! Vui lòng tạo phiên trước.', 'success');
-    return;
-  }
+      let attendedCount = 0;
 
-  classSessions.forEach(s => {
-    const createdDate = new Date(s.createdAt);
-    const displayDate = `${createdDate.toLocaleDateString('vi-VN')} ${createdDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
-    select.innerHTML += `<option value="${s.sessionId}">${s.sessionId} - ${s.label || 'Không tên'} (${displayDate})</option>`;
-  });
+      // Duyệt qua từng phiên điểm danh để kiểm tra trạng thái của sinh viên
+      sessions.forEach(session => {
+        const att = attendances.find(a => a.studentId === student.studentId && a.sessionId === session.sessionId);
+        
+        if (att) {
+          attendedCount++;
+          const methodIcon = att.isManual 
+            ? '<i class="fa-solid fa-user-pen" style="font-size: 11px; margin-left: 3px;" title="Điểm danh thủ công"></i>' 
+            : '<i class="fa-solid fa-qrcode" style="font-size: 11px; margin-left: 3px;" title="Quét QR"></i>';
+          rowHtml += `
+            <td style="text-align: center; color: var(--success);" title="Có mặt (${att.isManual ? 'Thủ công' : 'Quét QR'})">
+              <span style="font-weight: bold; font-size: 16px;">✓</span>${methodIcon}
+            </td>
+          `;
+        } else {
+          rowHtml += `
+            <td style="text-align: center; color: var(--danger);" title="Vắng mặt">
+              <span style="font-weight: bold; font-size: 15px;">✗</span>
+            </td>
+          `;
+        }
+      });
 
-  openModal('modal-select-session-manual');
-}
+      // Cột tổng hợp số buổi
+      const totalSessions = sessions.length;
+      const pct = totalSessions > 0 ? Math.round((attendedCount / totalSessions) * 100) : 0;
+      let pctColor = 'var(--danger)';
+      if (pct >= 80) pctColor = 'var(--success)';
+      else if (pct >= 50) pctColor = 'var(--warning)';
 
-// Submit điểm danh thủ công lên server
-async function submitManualAttendance(e) {
-  e.preventDefault();
-  const studentId = document.getElementById('manual-student-id').value;
-  const sessionId = document.getElementById('manual-session-select').value;
+      rowHtml += `
+          <td style="text-align: center; font-weight: 600;">
+            <span style="color: var(--text-primary);">${attendedCount}/${totalSessions}</span>
+            <div style="font-size: 11px; color: ${pctColor}; font-weight: normal; margin-top: 2px;">${pct}%</div>
+          </td>
+        </tr>
+      `;
 
-  if (!sessionId) {
-    showToast('Vui lòng chọn phiên để điểm danh!', 'warning');
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/attendance/manual`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ studentId, sessionId, classId: currentClassId })
+      bodyHtml += rowHtml;
     });
 
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.message);
-
-    showToast('Điểm danh thủ công thành công!', 'success');
-    closeModal('modal-select-session-manual');
-    
-    // Load lại lịch sử phiên hoặc danh sách nếu cần
-    fetchSessionsHistory();
+    table.innerHTML = `<thead>${headerHtml}</thead><tbody>${bodyHtml}</tbody>`;
 
   } catch (err) {
-    showToast(err.message || 'Lỗi điểm danh thủ công!', 'error');
+    console.error('Lỗi tải bảng tổng hợp điểm danh:', err);
+    table.innerHTML = `<thead><tr><th style="text-align: center; color: var(--danger); padding: 20px;">Lỗi tải bảng tổng hợp!</th></tr></thead>`;
   }
 }
 

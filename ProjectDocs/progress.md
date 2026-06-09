@@ -93,6 +93,13 @@
   - Bổ sung cột **Hành động** cho phép giáo viên click trực tiếp vào nút **Điểm danh** để điểm danh thủ công ngay lập tức cho sinh viên đang vắng tại phiên đó mà không cần phải chuyển sang tab khác.
   - Cập nhật logic trong `teacher.js` để gọi song song API thống kê phiên (`GET /api/statistics/:sessionId`) và danh sách sinh viên của lớp (`GET /api/teacher/classes/:classId/students`), sau đó map dữ liệu để hiển thị chính xác.
   - Tích hợp gọi API `/api/attendance/manual` trực tiếp khi click điểm danh thủ công trong popup modal chi tiết phiên và tự động reload dữ liệu chi tiết của phiên đó cùng bảng lịch sử để cập nhật số lượng.
+- **Nâng Cấp Tab Danh Sách Lớp Thành Bảng Tổng Hợp Điểm Danh (Attendance Matrix):**
+  - Xóa bỏ logic điểm danh thủ công cũ và nút bấm đơn lẻ trong Tab 3.
+  - Thiết kế bảng tổng hợp ma trận điểm danh động (`students-matrix-table`) tự động co giãn theo số lượng sinh viên và số buổi học đã tạo phiên điểm danh.
+  - Hiển thị đầy đủ thông tin: MSSV, Họ và tên, Lớp sinh hoạt, Trạng thái có mặt/vắng cho từng buổi (✓ xanh lá / ✗ đỏ), kèm ký hiệu hình thức (Quét QR hoặc điểm danh thủ công) và tổng số buổi đi học dưới dạng tỉ lệ cùng phần trăm trực quan.
+  - Bổ sung API backend `GET /api/attendance/class/:classId` để nạp toàn bộ danh sách điểm danh của một lớp học phần nhanh chóng chỉ trong một request, tối ưu hóa tốc độ tải dữ liệu ma trận.
+  - Loại bỏ hoàn toàn modal cũ `modal-select-session-manual` và các hàm Javascript không còn sử dụng (`openManualAttendanceModal`, `submitManualAttendance`) giúp mã nguồn sạch đẹp.
+
 
 
 
