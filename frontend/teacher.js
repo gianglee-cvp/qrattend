@@ -429,9 +429,9 @@ async function fetchStudentsList() {
     // Xây dựng Header cho bảng tổng hợp
     let headerHtml = `
       <tr>
-        <th>MSSV</th>
-        <th>Họ và Tên</th>
-        <th>Lớp SH</th>
+        <th style="white-space: nowrap;">MSSV</th>
+        <th style="white-space: nowrap; min-width: 160px;">Họ và Tên</th>
+        <th style="white-space: nowrap; min-width: 90px;">Lớp SH</th>
     `;
 
     // Thêm các cột cho từng phiên điểm danh
@@ -464,9 +464,9 @@ async function fetchStudentsList() {
     students.forEach(student => {
       let rowHtml = `
         <tr>
-          <td><strong>${student.studentId}</strong></td>
-          <td>${student.name}</td>
-          <td>${student.homeClass || '-'}</td>
+          <td style="white-space: nowrap;"><strong>${student.studentId}</strong></td>
+          <td style="white-space: nowrap;">${student.name}</td>
+          <td style="white-space: nowrap;">${student.homeClass || '-'}</td>
       `;
 
       let attendedCount = 0;
