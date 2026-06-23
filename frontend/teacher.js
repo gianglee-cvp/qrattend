@@ -202,9 +202,25 @@ async function createSession() {
 }
 
 // Đóng phiên điểm danh hiện tại
-function closeCurrentSession() {
-  if (confirm('Bạn có chắc muốn đóng phiên điểm danh này? Sinh viên sẽ không thể quét mã nữa.')) {
+async function closeCurrentSession() {
+  if (!confirm('Bạn có chắc muốn đóng phiên điểm danh này? Sinh viên sẽ không thể quét mã nữa.')) return;
+
+  try {
+    const res = await fetch(`${API_URL}/sessions/${activeSessionId}/close`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Lỗi đóng phiên điểm danh!');
+
+    showToast('Đã đóng phiên điểm danh thành công!', 'success');
     resetSessionUI();
+  } catch (err) {
+    showToast(err.message || 'Lỗi đóng phiên điểm danh!', 'error');
   }
 }
 
@@ -230,9 +246,13 @@ async function fetchSessionsHistory() {
       const createdDate = new Date(s.createdAt);
       const displayDate = `${createdDate.toLocaleDateString('vi-VN')} ${createdDate.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}`;
 
+      const statusBadge = s.isActive !== false
+        ? `<span class="badge badge-success" style="font-size: 10px; padding: 2px 6px; margin-left: 8px; text-transform: none;"><i class="fa-solid fa-play"></i> Đang mở</span>`
+        : `<span class="badge badge-danger" style="font-size: 10px; padding: 2px 6px; margin-left: 8px; text-transform: none; background: rgba(244, 63, 94, 0.15); color: #fda4af;"><i class="fa-solid fa-lock"></i> Đã đóng</span>`;
+
       tbody.innerHTML += `
         <tr>
-          <td><strong>${s.sessionId}</strong></td>
+          <td><strong>${s.sessionId}</strong>${statusBadge}</td>
           <td>${s.label || 'Không có nhãn'}</td>
           <td>${displayDate}</td>
           <td><span class="badge badge-success" id="count-${s.sessionId}">Đang tải...</span></td>

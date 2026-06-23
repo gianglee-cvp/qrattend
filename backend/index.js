@@ -772,6 +772,36 @@ app.post('/api/sessions', authenticateToken, async (req, res) => {
   res.json({ message: 'Tạo phiên điểm danh thành công (LocalDB)!', sessionId });
 });
 
+// Đóng phiên điểm danh (Giảng viên)
+app.put('/api/sessions/:sessionId/close', authenticateToken, async (req, res) => {
+  if (req.user.role !== 'teacher') return res.status(403).json({ message: 'Chỉ giảng viên mới có quyền đóng phiên!' });
+  const { sessionId } = req.params;
+  const { teacherId } = req.user;
+
+  if (isMongoConnected) {
+    try {
+      const session = await Session.findOne({ sessionId });
+      if (!session) return res.status(404).json({ message: 'Phiên điểm danh không tồn tại!' });
+      if (session.teacherId !== teacherId) return res.status(403).json({ message: 'Bạn không có quyền đóng phiên điểm danh của giảng viên khác!' });
+      
+      session.isActive = false;
+      await session.save();
+      return res.json({ message: 'Đã đóng phiên điểm danh thành công!' });
+    } catch (e) {
+      return res.status(500).json({ message: 'Lỗi đóng phiên điểm danh: ' + e.message });
+    }
+  }
+
+  const db = readLocalDb();
+  const sessionIndex = db.sessions.findIndex(s => s.sessionId === sessionId);
+  if (sessionIndex === -1) return res.status(404).json({ message: 'Phiên điểm danh không tồn tại!' });
+  if (db.sessions[sessionIndex].teacherId !== teacherId) return res.status(403).json({ message: 'Bạn không có quyền đóng phiên điểm danh của giảng viên khác!' });
+  
+  db.sessions[sessionIndex].isActive = false;
+  writeLocalDb(db);
+  res.json({ message: 'Đã đóng phiên điểm danh thành công (LocalDB)!' });
+});
+
 // Lấy lịch sử phiên của một lớp
 app.get('/api/sessions/:classId', authenticateToken, async (req, res) => {
   const { classId } = req.params;
@@ -1002,6 +1032,7 @@ app.get('/api/sessions/info/:sessionId', async (req, res) => {
   }
 
   if (!session) return res.status(404).json({ message: 'Không tìm thấy phiên điểm danh!' });
+  if (session.isActive === false) return res.status(400).json({ message: 'Phiên điểm danh đã kết thúc!' });
 
   let classInfo = null;
   if (isMongoConnected) {
@@ -1037,6 +1068,7 @@ app.get('/api/sessions/:sessionId/students', async (req, res) => {
   }
 
   if (!session) return res.status(404).json({ message: 'Không tìm thấy phiên điểm danh!' });
+  if (session.isActive === false) return res.status(400).json({ message: 'Phiên điểm danh đã kết thúc!' });
 
   let studentIds = [];
   if (isMongoConnected) {
@@ -1085,7 +1117,8 @@ app.post('/api/attendance', async (req, res) => {
     session = db.sessions.find(s => s.sessionId === sessionId);
   }
 
-  if (!session) return res.status(404).json({ message: 'Phiên điểm danh không tồn tại hoặc đã bị đóng!' });
+  if (!session) return res.status(404).json({ message: 'Phiên điểm danh không tồn tại!' });
+  if (session.isActive === false) return res.status(400).json({ message: 'Phiên điểm danh đã kết thúc!' });
 
   // Kiểm tra tên sinh viên
   let student = null;
